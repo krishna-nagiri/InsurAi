@@ -43,66 +43,159 @@ export default function AdminDashboard() {
   };
 
   // ---------------- fetchUsers ----------------
-  const fetchUsers = useCallback(async () => {
+  // Define once at component level
+const statusMap = {
+  ACTIVE:    "Active",
+  INACTIVE:  "Inactive",
+  TERMINATED:"Terminated",
+  active:    "Active",    // in case backend is inconsistent
+  inactive:  "Inactive",
+  terminated:"Terminated",
+};
+
+const fetchUsers = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
       // Fetch agents
-      const agentsRes = await axios.get("http://localhost:8077/agent", {
+      const agentsRes = await axios.get("http://localhost:8090/agent", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const agentsData = Array.isArray(agentsRes.data) ? agentsRes.data : [];
       const mappedAgents = agentsData.map((a) => ({
         id: a.id,
-        name: a.name,
+        name: a.name || "Unnamed Agent",
         email: a.email,
         role: "Agent",
-        status: "Active",
+        status: statusMap[a.status] || a.status || "Unknown",
       }));
 
       // Fetch employees
-      const employeesRes = await axios.get("http://localhost:8077/auth/employees", {
+      const employeesRes = await axios.get("http://localhost:8090/auth/employees", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const employeesData = Array.isArray(employeesRes.data) ? employeesRes.data : [];
       const mappedEmployees = employeesData.map((e) => ({
         id: e.id,
-        name: e.name,
+        name: e.name || "Unnamed Employee",
         email: e.email,
         role: "Employee",
-        status: e.active ? "Active" : "Inactive",
+        status: statusMap[e.status] || e.status || "Unknown",
       }));
 
       // Fetch HRs
-      const hrsRes = await axios.get("http://localhost:8077/hr", {
+      const hrsRes = await axios.get("http://localhost:8090/hr", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const hrsData = Array.isArray(hrsRes.data) ? hrsRes.data : [];
       const mappedHRs = hrsData.map((h) => ({
         id: h.id,
-        name: h.name,
+        name: h.name || "Unnamed HR",
         email: h.email,
         role: "HR",
-        status: "Active",
+        status: statusMap[h.status] || h.status || "Unknown",
       }));
 
-      // Combine agents + employees + HRs
       const allUsers = [...mappedAgents, ...mappedEmployees, ...mappedHRs];
       setUsers(allUsers);
     } catch (err) {
-      console.error("Failed to fetch users", err);
+      console.error("Failed to fetch users:", err);
+      // Optional: show toast/notification to admin
     }
   }, []);
-
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
+  const handleStatusChange = async (id, newStatus, role) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authentication token missing. Please log in again.");
+        return;
+      }
+
+      const requestBody = {
+        role: role.toUpperCase(),
+        id: Number(id),
+        status: newStatus.toUpperCase()
+      };
+
+     // console.log("[STATUS CHANGE REQUEST]", requestBody);
+
+      const response = await axios.put(
+        "http://localhost:8090/admin/users/status",
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+     // console.log("[STATUS CHANGE SUCCESS]", response.data);
+      //alert(`User status updated to ${newStatus}!`);
+      fetchUsers(); // Refresh the list
+
+    } catch (err) {
+      //console.error("[STATUS CHANGE ERROR]", err);
+
+      let errorMessage = "Failed to update status. Please check console.";
+      
+      if (err.response) {
+        // Server responded with error (400, 404, 500, etc.)
+       // console.error("Response status:", err.response.status);
+        //console.error("Response data:", err.response.data);
+        errorMessage = err.response.data?.message || `Server error (${err.response.status})`;
+      } else if (err.request) {
+        // No response (network issue, CORS, server down)
+        errorMessage = "No response from server. Is backend running on port 8090?";
+      } else {
+        errorMessage = err.message;
+      }
+
+      alert(errorMessage);
+    }
+  };
+
+  // Temporary simple implementations – replace with real modal/form later
+const handleEditUser = (user) => {
+    alert(
+      `Edit functionality coming soon for:\n\n` +
+      `Name: ${user.name}\n` +
+      `Email: ${user.email}\n` +
+      `Role: ${user.role}\n` +
+      `ID: ${user.id}\n\n` +
+      `(You can later open a modal here to edit name/email/etc)`
+    );
+    // Future: set state to open edit modal
+    // setEditingUser(user);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm(`Are you sure you want to delete user ID ${userId}?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:8090/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert("User deleted successfully");
+      fetchUsers();
+    } catch (err) {
+      //console.error("Delete failed:", err);
+      //alert("Could not delete user: " + (err.response?.data?.message || err.message));
+    }
+  };
   // ---------------- Register HR ----------------
   const handleRegisterHR = async (hrData) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:8077/admin/hr/register", hrData, {
+      await axios.post("http://localhost:8090/admin/hr/register", hrData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNewHR({ name: "", email: "", password: "" });
@@ -118,7 +211,7 @@ export default function AdminDashboard() {
   const handleRegisterAgent = async (agentData) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:8077/admin/agent/register", agentData, {
+      await axios.post("http://localhost:8090/admin/agent/register", agentData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNewAgent({ name: "", email: "", password: "" });
@@ -137,7 +230,7 @@ export default function AdminDashboard() {
       if (!token) return;
 
       // Fetch claims
-      const claimsRes = await fetch("http://localhost:8077/admin/claims", {
+      const claimsRes = await fetch("http://localhost:8090/admin/claims", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!claimsRes.ok) {
@@ -147,19 +240,18 @@ export default function AdminDashboard() {
       const claimsData = await claimsRes.json();
 
       // Fetch employees
-      const empRes = await fetch("http://localhost:8077/auth/employees", {
+      const empRes = await fetch("http://localhost:8090/auth/employees", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const employees = await empRes.json();
-
       // Fetch HRs
-      const hrRes = await fetch("http://localhost:8077/hr", {
+      const hrRes = await fetch("http://localhost:8090/hr", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const hrs = await hrRes.json();
 
       // Fetch policies
-      const policyRes = await fetch("http://localhost:8077/admin/policies", {
+      const policyRes = await fetch("http://localhost:8090/admin/policies", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const policiesData = await policyRes.json();
@@ -592,7 +684,13 @@ export default function AdminDashboard() {
       case "users":
         return (
           <div className="w-100">
-            <AdminUserManagement users={users} setActiveTab={setActiveTab} />
+            <AdminUserManagement
+              users={users}
+              setActiveTab={setActiveTab}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
+              onStatusChange={handleStatusChange}
+            />
           </div>
         );
 

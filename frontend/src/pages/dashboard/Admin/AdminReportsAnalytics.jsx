@@ -49,11 +49,11 @@ export default function AdminReportsAnalytics() {
       setLoading(true);
       try {
         const [usersRes, claimsRes, policiesRes, hrsRes, agentsRes] = await Promise.all([
-          axios.get("http://localhost:8077/auth/employees", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8077/admin/claims", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8077/admin/policies", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8077/hr", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8077/agent", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("http://localhost:8090/auth/employees", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("http://localhost:8090/admin/claims", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("http://localhost:8090/admin/policies", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("http://localhost:8090/hr", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("http://localhost:8090/agent", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         setUsers(usersRes.data || []);
@@ -575,10 +575,10 @@ const hrWorkload = hrs.map(hr => {
           <CSVLink 
             data={getEmployeesForCSV()} 
             filename="employee_report.csv"
-            className="btn btn-sm btn-success"
-          >
+            className="btn btn-sm btn-success">
             <i className="bi bi-download me-1"></i>CSV
           </CSVLink>
+
         </div>
         <div className="card-body">
           <div className="row text-center">
@@ -602,6 +602,7 @@ const hrWorkload = hrs.map(hr => {
                 <small style={{ color: COLORS.TEXT_MUTED }}>Avg Claims/Employee</small>
               </div>
             </div>
+
             <div className="col-6 mb-3">
               <div className="border rounded p-3">
                 <h4 style={{ color: COLORS.WARNING }}>
@@ -612,6 +613,7 @@ const hrWorkload = hrs.map(hr => {
                 <small style={{ color: COLORS.TEXT_MUTED }}>Avg Amount/Employee</small>
               </div>
             </div>
+            
           </div>
         </div>
       </div>

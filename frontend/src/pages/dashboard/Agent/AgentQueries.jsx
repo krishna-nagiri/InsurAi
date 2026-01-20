@@ -506,7 +506,7 @@ export default function AgentQueries({
                                   onClick={async () => {
                                     try {
                                       await axios.put(
-                                        `http://localhost:8077/agent/queries/respond/${query.id}`,
+                                        `http://localhost:8090/agent/queries/respond/${query.id}`,
                                         { response: query.response || "Resolved" },
                                         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
                                       );

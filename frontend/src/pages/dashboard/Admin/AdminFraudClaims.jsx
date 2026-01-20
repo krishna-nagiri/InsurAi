@@ -61,7 +61,7 @@ export default function AdminFraudClaims() {
         const token = localStorage.getItem("token");
         if (!token) return console.error("❌ No admin token found!");
 
-        const response = await axios.get("http://localhost:8077/admin/claims/fraud", {
+        const response = await axios.get("http://localhost:8090/admin/claims/fraud", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setFraudClaims(response.data);
