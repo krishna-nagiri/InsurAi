@@ -57,7 +57,7 @@ export default function AgentRegister({ onBack }) {
       }
 
       const response = await axios.post(
-        "http://localhost:8077/admin/agent/register",
+        "http://localhost:8090/admin/agent/register",
         newAgent,
         {
           headers: {

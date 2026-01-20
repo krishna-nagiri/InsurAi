@@ -27,7 +27,7 @@ export default function EmployeeRegister() {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:8077/auth/register", {
+      const res = await fetch("http://localhost:8090/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employeeId, name, email, password }),

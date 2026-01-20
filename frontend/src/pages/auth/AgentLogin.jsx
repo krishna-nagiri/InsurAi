@@ -9,15 +9,18 @@ export default function AgentLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    console.log("Attempting login with:", { email, password });  // debug logging
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8077/agent/login", {
+      const res = await fetch("http://localhost:8090/agent/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
       if (res.ok) {
         const data = await res.json();
+        console.log("Login successful:", data); // success logging
+        localStorage.setItem("agentId", data.agentId);
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "agent");
         localStorage.setItem("agentName", data.name || "Agent");
@@ -26,10 +29,14 @@ export default function AgentLogin() {
         alert("Access Denied");
       }
     } catch (err) {
+      console.error("Login error:", err); // error logging
       alert("Secure server connection failed.");
     } finally {
       setLoading(false);
     }
+
+
+
   };
 
   return (

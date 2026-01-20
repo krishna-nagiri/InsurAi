@@ -48,7 +48,7 @@ export default function ResetPassword() {
     try {
       // Send new password to backend
       const res = await axios.post(
-        `http://localhost:8077/auth/reset-password/${token}`,
+        `http://localhost:8090/auth/reset-password/${token}`,
         { newPassword: password } // Backend expects this field
       );
 
