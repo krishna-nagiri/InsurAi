@@ -80,7 +80,7 @@ export default function HRDashboard() {
   const fetchEmployees = useCallback(async () => {
     try {
       setLoading(prev => ({ ...prev, employees: true }));
-      const response = await fetch("http://localhost:8077/auth/employees");
+      const response = await fetch("http://localhost:8090/auth/employees");
       if (!response.ok) throw new Error('Failed to fetch employees');
       const data = await response.json();
       setEmployees(Array.isArray(data) ? data : []);
@@ -97,7 +97,7 @@ export default function HRDashboard() {
 
   const fetchHRList = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8077/hr");
+      const response = await fetch("http://localhost:8090/hr");
       if (!response.ok) throw new Error('Failed to fetch HR list');
       const data = await response.json();
       setHrs(Array.isArray(data) ? data : []);
@@ -113,7 +113,7 @@ export default function HRDashboard() {
     try {
       setLoading(prev => ({ ...prev, policies: true }));
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8077/employee/policies", {
+      const response = await fetch("http://localhost:8090/employee/policies", {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
 
@@ -159,7 +159,7 @@ export default function HRDashboard() {
         return;
       }
 
-      const response = await fetch(`http://localhost:8077/hr/claims?hrId=${loggedInHrId}`, {
+      const response = await fetch(`http://localhost:8090/hr/claims?hrId=${loggedInHrId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -375,7 +375,7 @@ export default function HRDashboard() {
     
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8077/hr/claims/approve/${id}`, {
+      const response = await fetch(`http://localhost:8090/hr/claims/approve/${id}`, {
         method: "POST",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -422,7 +422,7 @@ export default function HRDashboard() {
     
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8077/hr/claims/reject/${id}`, {
+      const response = await fetch(`http://localhost:8090/hr/claims/reject/${id}`, {
         method: "POST",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -483,7 +483,7 @@ export default function HRDashboard() {
       c.remarks || "",
       c.priority,
       c.daysPending,
-      c.documents?.length > 0 ? c.documents.map(d => `http://localhost:8077${d}`).join(" | ") : "No documents"
+      c.documents?.length > 0 ? c.documents.map(d => `http://localhost:8090${d}`).join(" | ") : "No documents"
     ]);
 
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");

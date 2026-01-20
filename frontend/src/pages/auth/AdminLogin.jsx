@@ -11,7 +11,7 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8077/auth/admin/login", {
+      const res = await fetch("http://localhost:8090/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),

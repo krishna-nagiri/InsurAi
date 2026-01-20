@@ -17,7 +17,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:8077/auth/forgot-password", { 
+      const res = await axios.post("http://localhost:8090/auth/forgot-password", { 
         email: email.trim().toLowerCase() 
       });
 

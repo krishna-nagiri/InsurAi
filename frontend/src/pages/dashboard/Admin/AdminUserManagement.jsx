@@ -50,26 +50,38 @@ export default function AdminUserManagement({
   const [usersPerPage, setUsersPerPage] = useState(10);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // Calculate user statistics
+  // Calculate user statistics (excluding terminated from totalUsers)
   const userStats = useMemo(() => {
-    const totalUsers = users.length;
-    const totalEmployees = users.filter(user => user.role === "Employee").length;
-    const totalAgents = users.filter(user => user.role === "Agent").length;
-    const totalHR = users.filter(user => user.role === "HR").length;
+    const nonTerminatedUsers = users.filter(user => user.status !== "Terminated");
+    const totalUsers = nonTerminatedUsers.length;
+    const totalEmployees = nonTerminatedUsers.filter(user => user.role === "Employee").length;
+    const totalAgents = nonTerminatedUsers.filter(user => user.role === "Agent").length;
+    const totalHR = nonTerminatedUsers.filter(user => user.role === "HR").length;
     const activeUsers = users.filter(user => user.status === "Active").length;
     const inactiveUsers = users.filter(user => user.status === "Inactive").length;
+    const terminatedUsers = users.filter(user => user.status === "Terminated").length;
 
-    return { totalUsers, totalEmployees, totalAgents, totalHR, activeUsers, inactiveUsers };
+    return { totalUsers, totalEmployees, totalAgents, totalHR, activeUsers, inactiveUsers, terminatedUsers };
   }, [users]);
 
   // Filter users based on search and filters
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        (user.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+
       const matchesRole = roleFilter === "All" || user.role === roleFilter;
-      const matchesStatus = statusFilter === "All" || user.status === statusFilter;
-      
+
+      let matchesStatus;
+      if (statusFilter === "All") {
+        matchesStatus = user.status !== "Terminated";     // default: hide terminated
+      } else {
+        matchesStatus = user.status === statusFilter;     // exact match
+      }
+      // When "All" is selected → show everyone (including Terminated)
+      // When specific status → exact match only
+
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, searchTerm, roleFilter, statusFilter]);
@@ -87,10 +99,14 @@ export default function AdminUserManagement({
     }
   };
 
-  const handleStatusToggle = (user) => {
-    if (onStatusChange) {
-      const newStatus = user.status === "Active" ? "Inactive" : "Active";
-      onStatusChange(user.id, newStatus);
+  const handleStatusChange = (user, newStatus) => {
+    if (!onStatusChange) return;
+
+    const action = newStatus === "Terminated" ? "Terminate" : "Change status to";
+    const confirmMsg = `${action} user "${user.name}" (${user.email}) to ${newStatus}?`;
+
+    if (window.confirm(confirmMsg)) {
+      onStatusChange(user.id, newStatus, user.role);
     }
   };
 
@@ -121,16 +137,11 @@ export default function AdminUserManagement({
 
   // Get status badge class
   const getStatusBadgeClass = (status) => {
-    return status === "Active" ? "bg-success" : "bg-warning";
-  };
-
-  // Get role icon
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case "HR": return "bi-person-badge";
-      case "Agent": return "bi-headset";
-      case "Employee": return "bi-person";
-      default: return "bi-person";
+    switch (status) {
+      case "Active": return "bg-success";
+      case "Inactive": return "bg-warning";
+      case "Terminated": return "bg-danger text-white";
+      default: return "bg-secondary";
     }
   };
 
@@ -145,351 +156,132 @@ export default function AdminUserManagement({
   // Chart data for user distribution - updated colors
   const roleDistributionData = {
     labels: ['Employees', 'Agents', 'HR'],
-    datasets: [
-      {
-        data: [userStats.totalEmployees, userStats.totalAgents, userStats.totalHR],
-        backgroundColor: [
-          COLORS.ACCENT_3,   // Lavender Mist for Employees
-          COLORS.CONTRAST,   // Cyan for Agents
-          COLORS.ACCENT_2    // Bright Orchid for HR
-        ],
-        borderColor: [
-          COLORS.ACCENT_3,
-          COLORS.CONTRAST,
-          COLORS.ACCENT_2
-        ],
-        borderWidth: 2,
-      },
-    ],
+    datasets: [{
+      data: [userStats.totalEmployees, userStats.totalAgents, userStats.totalHR],
+      backgroundColor: [COLORS.PRIMARY, COLORS.ACCENT_2, COLORS.ACCENT_3],
+      hoverBackgroundColor: [COLORS.DARK, COLORS.PRIMARY, COLORS.ACCENT_2],
+    }],
   };
 
-  // Status distribution data - updated colors
   const statusDistributionData = {
-    labels: ['Active', 'Inactive'],
-    datasets: [
-      {
-        data: [userStats.activeUsers, userStats.inactiveUsers],
-        backgroundColor: [
-          COLORS.CONTRAST,   // Cyan for Active
-          COLORS.WARNING     // Gold for Inactive
-        ],
-        borderColor: [
-          COLORS.CONTRAST,
-          COLORS.WARNING
-        ],
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  // Role comparison chart data - updated colors
-  const roleComparisonData = {
-    labels: ['Employees', 'Agents', 'HR'],
-    datasets: [
-      {
-        label: 'User Count',
-        data: [userStats.totalEmployees, userStats.totalAgents, userStats.totalHR],
-        backgroundColor: [
-          COLORS.ACCENT_3,   // Lavender Mist for Employees
-          COLORS.CONTRAST,   // Cyan for Agents
-          COLORS.ACCENT_2    // Bright Orchid for HR
-        ],
-        borderColor: [
-          COLORS.ACCENT_3,
-          COLORS.CONTRAST,
-          COLORS.ACCENT_2
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // Chart options
-  const pieChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          usePointStyle: true,
-          padding: 20,
-          color: COLORS.TEXT_MUTED
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff'
-      }
-    },
-  };
-
-  const barChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff'
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)'
-        },
-        ticks: {
-          color: COLORS.TEXT_MUTED
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          color: COLORS.TEXT_MUTED
-        }
-      }
-    }
-  };
-
-  const doughnutChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          usePointStyle: true,
-          padding: 20,
-          color: COLORS.TEXT_MUTED
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff'
-      }
-    },
+    labels: ['Active', 'Inactive', 'Terminated'],
+    datasets: [{
+      data: [userStats.activeUsers, userStats.inactiveUsers, userStats.terminatedUsers],
+      backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+    }],
   };
 
   return (
-    <div className="admin-user-management" style={{ backgroundColor: COLORS.BACKGROUND, minHeight: '100vh' }}>
-      {/* Header Section */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h3 style={{ color: COLORS.DARK }} className="fw-bold mb-1">User Management</h3>
-          <p style={{ color: COLORS.TEXT_MUTED }} className="mb-0">Manage system users and their permissions</p>
+    <div className="container-fluid">
+      {/* Stats Cards */}
+      <div className="row g-3 mb-4">
+        <div className="col-md-3">
+          <div className="metric-card shadow-sm rounded-3 p-3">
+            <div className="d-flex align-items-center mb-2">
+              <div className="metric-icon bg-primary-subtle me-3">
+                <i className="bi bi-people fs-4 text-primary"></i>
+              </div>
+              <h6 className="mb-0 text-muted">Total Users</h6>
+            </div>
+            <h3 className="mb-0">{userStats.totalUsers}</h3>
+          </div>
         </div>
-        <div className="d-flex gap-2">
-          <button
-            className="btn btn-primary d-flex align-items-center shadow-sm"
-            style={{ backgroundColor: COLORS.PRIMARY, borderColor: COLORS.PRIMARY }}
-            onClick={() => setActiveTab("registerHR")}
-          >
-            <i className="bi bi-person-plus me-2"></i>
-            Add HR
-          </button>
-          <button
-            className="btn btn-outline-primary d-flex align-items-center shadow-sm"
-            style={{ color: COLORS.PRIMARY, borderColor: COLORS.PRIMARY }}
-            onClick={() => setActiveTab("registerAgent")}
-          >
-            <i className="bi bi-person-plus me-2"></i>
-            Add Agent
-          </button>
+        <div className="col-md-3">
+          <div className="metric-card shadow-sm rounded-3 p-3">
+            <div className="d-flex align-items-center mb-2">
+              <div className="metric-icon bg-success-subtle me-3">
+                <i className="bi bi-person-check fs-4 text-success"></i>
+              </div>
+              <h6 className="mb-0 text-muted">Active Users</h6>
+            </div>
+            <h3 className="mb-0">{userStats.activeUsers}</h3>
+          </div>
+        </div>
+        <div className="col-md-3">
+          <div className="metric-card shadow-sm rounded-3 p-3">
+            <div className="d-flex align-items-center mb-2">
+              <div className="metric-icon bg-warning-subtle me-3">
+                <i className="bi bi-person-x fs-4 text-warning"></i>
+              </div>
+              <h6 className="mb-0 text-muted">Inactive Users</h6>
+            </div>
+            <h3 className="mb-0">{userStats.inactiveUsers}</h3>
+          </div>
+        </div>
+        <div className="col-md-3">
+          <div className="metric-card shadow-sm rounded-3 p-3">
+            <div className="d-flex align-items-center mb-2">
+              <div className="metric-icon bg-danger-subtle me-3">
+                <i className="bi bi-person-dash fs-4 text-danger"></i>
+              </div>
+              <h6 className="mb-0 text-muted">Terminated Users</h6>
+            </div>
+            <h3 className="mb-0">{userStats.terminatedUsers}</h3>
+          </div>
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="row mb-4">
-        <div className="col-xl-3 col-md-6 mb-4">
-          <div className="card shadow-sm h-100 py-2" style={{ borderLeft: `4px solid ${COLORS.PRIMARY}` }}>
+      {/* Charts */}
+      <div className="row g-3 mb-4">
+        <div className="col-md-6">
+          <div className="card shadow-sm rounded-3">
             <div className="card-body">
-              <div className="row no-gutters align-items-center">
-                <div className="col mr-2">
-                  <div className="text-xs font-weight-bold text-uppercase mb-1" style={{ color: COLORS.PRIMARY }}>
-                    Total Users
-                  </div>
-                  <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {userStats.totalUsers}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">All system users</div>
-                </div>
-                <div className="col-auto">
-                  <i className="bi bi-people-fill fa-2x text-gray-300"></i>
-                </div>
+              <h5 className="card-title mb-4" style={{ color: COLORS.DARK }}>Role Distribution</h5>
+              <div style={{ height: '250px' }}>
+                <Doughnut 
+                  data={roleDistributionData} 
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                  }} 
+                />
               </div>
             </div>
           </div>
         </div>
-
-        <div className="col-xl-3 col-md-6 mb-4">
-          <div className="card shadow-sm h-100 py-2" style={{ borderLeft: `4px solid ${COLORS.ACCENT_3}` }}>
+        <div className="col-md-6">
+          <div className="card shadow-sm rounded-3">
             <div className="card-body">
-              <div className="row no-gutters align-items-center">
-                <div className="col mr-2">
-                  <div className="text-xs font-weight-bold text-uppercase mb-1" style={{ color: COLORS.ACCENT_3 }}>
-                    Employees
-                  </div>
-                  <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {userStats.totalEmployees}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">Employee accounts</div>
-                </div>
-                <div className="col-auto">
-                  <i className="bi bi-person-fill fa-2x text-gray-300"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-xl-3 col-md-6 mb-4">
-          <div className="card shadow-sm h-100 py-2" style={{ borderLeft: `4px solid ${COLORS.CONTRAST}` }}>
-            <div className="card-body">
-              <div className="row no-gutters align-items-center">
-                <div className="col mr-2">
-                  <div className="text-xs font-weight-bold text-uppercase mb-1" style={{ color: COLORS.CONTRAST }}>
-                    Agents
-                  </div>
-                  <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {userStats.totalAgents}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">Agent accounts</div>
-                </div>
-                <div className="col-auto">
-                  <i className="bi bi-headset fa-2x text-gray-300"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-xl-3 col-md-6 mb-4">
-          <div className="card shadow-sm h-100 py-2" style={{ borderLeft: `4px solid ${COLORS.ACCENT_2}` }}>
-            <div className="card-body">
-              <div className="row no-gutters align-items-center">
-                <div className="col mr-2">
-                  <div className="text-xs font-weight-bold text-uppercase mb-1" style={{ color: COLORS.ACCENT_2 }}>
-                    HR Users
-                  </div>
-                  <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    {userStats.totalHR}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">HR accounts</div>
-                </div>
-                <div className="col-auto">
-                  <i className="bi bi-person-badge fa-2x text-gray-300"></i>
-                </div>
+              <h5 className="card-title mb-4" style={{ color: COLORS.DARK }}>Status Distribution</h5>
+              <div style={{ height: '250px' }}>
+                <Pie 
+                  data={statusDistributionData} 
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                  }} 
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className="row mb-4">
-        <div className="col-xl-4 col-md-6 mb-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-header bg-white py-3">
-              <h6 className="m-0 font-weight-bold" style={{ color: COLORS.DARK }}>
-                <i className="bi bi-pie-chart me-2"></i>
-                Role Distribution
-              </h6>
-            </div>
-            <div className="card-body">
-              <div style={{ height: '300px' }}>
-                <Pie data={roleDistributionData} options={pieChartOptions} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-xl-4 col-md-6 mb-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-header bg-white py-3">
-              <h6 className="m-0 font-weight-bold" style={{ color: COLORS.DARK }}>
-                <i className="bi bi-bar-chart me-2"></i>
-                Role Comparison
-              </h6>
-            </div>
-            <div className="card-body">
-              <div style={{ height: '300px' }}>
-                <Bar data={roleComparisonData} options={barChartOptions} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-xl-4 col-md-6 mb-4">
-          <div className="card shadow-sm border-0">
-            <div className="card-header bg-white py-3">
-              <h6 className="m-0 font-weight-bold" style={{ color: COLORS.DARK }}>
-                <i className="bi bi-circle-half me-2"></i>
-                Status Overview
-              </h6>
-            </div>
-            <div className="card-body">
-              <div style={{ height: '300px' }}>
-                <Doughnut data={statusDistributionData} options={doughnutChartOptions} />
-              </div>
-              <div className="text-center mt-3">
-                <div className="d-flex justify-content-around">
-                  <div>
-                    <span className="badge me-2" style={{ backgroundColor: COLORS.CONTRAST }}></span>
-                    <small style={{ color: COLORS.TEXT_MUTED }}>Active: {userStats.activeUsers}</small>
-                  </div>
-                  <div>
-                    <span className="badge me-2" style={{ backgroundColor: COLORS.WARNING }}></span>
-                    <small style={{ color: COLORS.TEXT_MUTED }}>Inactive: {userStats.inactiveUsers}</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters Section */}
-      <div className="card shadow-sm border-0 mb-4">
+      {/* Filters */}
+      <div className="card shadow-sm rounded-3 mb-4">
         <div className="card-body">
-          <div className="row g-3 align-items-end">
-            <div className="col-lg-4 col-md-6">
-              <label className="form-label fw-semibold" style={{ color: COLORS.DARK }}>Search Users</label>
+          <div className="row g-3">
+            <div className="col-md-4">
               <div className="input-group">
-                <span className="input-group-text bg-light border-end-0">
-                  <i className="bi bi-search" style={{ color: COLORS.TEXT_MUTED }}></i>
+                <span className="input-group-text bg-white">
+                  <i className="bi bi-search"></i>
                 </span>
                 <input
                   type="text"
                   className="form-control border-start-0"
                   placeholder="Search by name or email..."
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-            
-            <div className="col-lg-3 col-md-6">
-              <label className="form-label fw-semibold" style={{ color: COLORS.DARK }}>Filter by Role</label>
+            <div className="col-md-3">
               <select
                 className="form-select"
                 value={roleFilter}
-                onChange={(e) => {
-                  setRoleFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={(e) => setRoleFilter(e.target.value)}
               >
                 <option value="All">All Roles</option>
                 <option value="Employee">Employee</option>
@@ -497,29 +289,24 @@ export default function AdminUserManagement({
                 <option value="HR">HR</option>
               </select>
             </div>
-
-            <div className="col-lg-3 col-md-6">
-              <label className="form-label fw-semibold" style={{ color: COLORS.DARK }}>Filter by Status</label>
+            <div className="col-md-3">
               <select
                 className="form-select"
                 value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="All">All Status</option>
+                <option value="All">All Statuses</option>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
+                <option value="Terminated">Terminated</option>
               </select>
             </div>
-
-            <div className="col-lg-2 col-md-6">
-              <button
+            <div className="col-md-2">
+              <button 
                 className="btn btn-outline-secondary w-100"
                 onClick={resetFilters}
               >
-                <i className="bi bi-arrow-clockwise me-2"></i>
+                <i className="bi bi-arrow-counterclockwise me-1"></i>
                 Reset
               </button>
             </div>
@@ -528,196 +315,176 @@ export default function AdminUserManagement({
       </div>
 
       {/* Users Table */}
-      <div className="card shadow-sm border-0">
-        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-          <h5 className="mb-0 font-weight-bold" style={{ color: COLORS.DARK }}>
-            <i className="bi bi-people me-2"></i>
-            All Users
-            <span className="badge ms-2" style={{ backgroundColor: COLORS.PRIMARY }}>
-              {filteredUsers.length}
-            </span>
-          </h5>
-          <div className="d-flex align-items-center gap-3">
-            <span className="small" style={{ color: COLORS.TEXT_MUTED }}>
-              Showing {indexOfFirstUser + 1}-{Math.min(indexOfLastUser, filteredUsers.length)} of {filteredUsers.length}
-            </span>
-            <select
-              className="form-select form-select-sm w-auto"
-              value={usersPerPage}
-              onChange={(e) => {
-                setUsersPerPage(parseInt(e.target.value));
-                setCurrentPage(1);
-              }}
-            >
-              <option value="5">5 per page</option>
-              <option value="10">10 per page</option>
-              <option value="20">20 per page</option>
-              <option value="50">50 per page</option>
-            </select>
-          </div>
-        </div>
-        
-        <div className="card-body p-0">
+      {currentUsers.length > 0 ? (
+        <div className="card shadow-sm rounded-3 overflow-hidden">
           <div className="table-responsive">
             <table className="table table-hover mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 font-weight-bold" style={{ color: COLORS.DARK }}>User</th>
-                  <th className="border-0 font-weight-bold" style={{ color: COLORS.DARK }}>Email</th>
-                  <th className="border-0 font-weight-bold" style={{ color: COLORS.DARK }}>Role</th>
-                  <th className="border-0 font-weight-bold" style={{ color: COLORS.DARK }}>Status</th>
-                  <th className="border-0 font-weight-bold" style={{ color: COLORS.DARK }}>Actions</th>
+                  <th className="ps-4">User</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th className="text-end pe-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentUsers.map((user) => (
-                  <tr key={user.id} className="border-bottom">
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <div 
-                          className="avatar-sm rounded-circle d-flex align-items-center justify-content-center me-3 text-white fw-bold shadow-sm"
-                          style={{
-                            backgroundColor: user.role === "HR" ? COLORS.ACCENT_2 : 
-                                           user.role === "Agent" ? COLORS.CONTRAST : 
-                                           user.role === "Employee" ? COLORS.ACCENT_3 : COLORS.TEXT_MUTED,
-                            width: "40px",
-                            height: "40px"
-                          }}
-                        >
-                          {user.name?.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="fw-semibold" style={{ color: COLORS.DARK }}>{user.name}</div>
-                          <small style={{ color: COLORS.TEXT_MUTED }}>{user.email}</small>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="align-middle" style={{ color: COLORS.DARK }}>{user.email}</td>
+                  <tr key={`${user.role}-${user.id}`}>
+                    <td className="align-middle ps-4">{user.name}</td>
+                    <td className="align-middle text-muted">{user.email}</td>
                     <td className="align-middle">
-                      <span className={`badge ${getRoleBadgeClass(user.role)} shadow-sm`}>
-                        <i className={`bi ${getRoleIcon(user.role)} me-1`}></i>
+                      <span className={`badge ${getRoleBadgeClass(user.role)} rounded-pill px-3 py-2`}>
                         {user.role}
                       </span>
                     </td>
                     <td className="align-middle">
-                      <span className={`badge ${getStatusBadgeClass(user.status)} shadow-sm`}>
-                        <i className={`bi ${
-                          user.status === "Active" ? "bi-check-circle" : "bi-pause-circle"
-                        } me-1`}></i>
+                      <span className={`badge ${getStatusBadgeClass(user.status)} rounded-pill px-3 py-2`}>
+                        <i className={`bi ${user.status === "Active" ? "bi-check-circle" : user.status === "Inactive" ? "bi-exclamation-circle" : "bi-dash-circle"} me-1`}></i>
                         {user.status}
                       </span>
                     </td>
-                    <td className="align-middle">
-                      <div className="d-flex gap-2">
-                        <button 
-                          className="btn btn-sm btn-outline-primary rounded-pill px-3"
-                          style={{ color: COLORS.PRIMARY, borderColor: COLORS.PRIMARY }}
-                          onClick={() => handleEdit(user)}
-                          title="Edit User"
+                    <td className="align-middle text-end pe-4">
+                      <div className="d-flex gap-2 justify-content-end align-items-center">
+
+                        {/* Status change dropdown – only show if not already Terminated */}
+                        {user.status !== "Terminated" && (
+                          <div className="dropdown">
+                            <button
+                              className="btn btn-sm btn-outline-primary rounded-circle p-2 lh-1"
+                              type="button"
+                              id={`statusDropdown-${user.id}`}
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false"
+                              title="Change status"
+                              //onClick={() => console.log("Arrow clicked!")}
+                            >
+                              <i className="bi bi-arrow-repeat"></i>
+                            </button>
+                            <ul className="dropdown-menu dropdown-menu-end" aria-labelledby={`statusDropdown-${user.id}`}>
+                              <li>
+                                <button
+                                  className="dropdown-item"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleStatusChange(user, "Active");
+                                  }}
+                                >
+                                  Set Active
+                                </button>
+                              </li>
+                              <li>
+                                <button
+                                  className="dropdown-item"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleStatusChange(user, "Inactive");
+                                  }}
+                                >
+                                  Set Inactive
+                                </button>
+                              </li>
+                              <li><hr className="dropdown-divider" /></li>
+                              <li>
+                                <button
+                                  className="dropdown-item text-danger"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (window.confirm(`Terminate user "${user.name}"? This cannot be undone.`)) {
+                                      handleStatusChange(user, "Terminated");
+                                    }
+                                  }}
+                                >
+                                  Terminate
+                                </button>
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Edit button – commented out / disabled as per your request */}
+                        {/* 
+                        <button
+                          className="btn btn-sm btn-outline-secondary rounded-circle p-2 lh-1 opacity-50"
+                          disabled
+                          title="Edit coming soon"
                         >
                           <i className="bi bi-pencil"></i>
                         </button>
-                        <button 
-                          className="btn btn-sm btn-outline-success rounded-pill px-3"
-                          onClick={() => handleStatusToggle(user)}
-                          title={user.status === "Active" ? "Deactivate User" : "Activate User"}
-                        >
-                          <i className={`bi ${
-                            user.status === "Active" ? "bi-pause" : "bi-play"
-                          }`}></i>
-                        </button>
-                        <button 
-                          className="btn btn-sm btn-outline-danger rounded-pill px-3"
-                          style={{ color: COLORS.ACCENT_2, borderColor: COLORS.ACCENT_2 }}
-                          onClick={() => handleDeleteClick(user)}
-                          title="Delete User"
-                        >
-                          <i className="bi bi-trash"></i>
-                        </button>
+                        */}
+
                       </div>
                     </td>
                   </tr>
                 ))}
-                {currentUsers.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="text-center py-5">
-                      <i className="bi bi-people display-1 d-block mb-3" style={{ color: `${COLORS.ACCENT_3}30` }}></i>
-                      <h5 style={{ color: COLORS.TEXT_MUTED }}>No users found</h5>
-                      <p style={{ color: COLORS.TEXT_MUTED }} className="mb-0">
-                        {users.length === 0 
-                          ? "No users in the system yet. Add your first user above."
-                          : "Try adjusting your search or filters"
-                        }
-                      </p>
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
-        </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="card-footer bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="small" style={{ color: COLORS.TEXT_MUTED }}>
-                Showing {indexOfFirstUser + 1} to {Math.min(indexOfLastUser, filteredUsers.length)} of {filteredUsers.length} entries
-              </div>
-              <nav>
-                <ul className="pagination mb-0">
-                  <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                    <button
-                      className="page-link rounded-start"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <i className="bi bi-chevron-left"></i>
-                    </button>
-                  </li>
-                  
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-
-                    return (
-                      <li
-                        key={pageNum}
-                        className={`page-item ${currentPage === pageNum ? "active" : ""}`}
-                      >
-                        <button
-                          className="page-link"
-                          onClick={() => setCurrentPage(pageNum)}
-                        >
-                          {pageNum}
-                        </button>
-                      </li>
-                    );
-                  })}
-
-                  <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                    <button
-                      className="page-link rounded-end"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <i className="bi bi-chevron-right"></i>
-                    </button>
-                  </li>
-                </ul>
-              </nav>
+          {/* Pagination */}
+          <div className="card-footer bg-white d-flex justify-content-between align-items-center">
+            <div className="small" style={{ color: COLORS.TEXT_MUTED }}>
+              Showing {indexOfFirstUser + 1} to {Math.min(indexOfLastUser, filteredUsers.length)} of {filteredUsers.length} entries
             </div>
+            <nav>
+              <ul className="pagination mb-0">
+                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <button
+                    className="page-link rounded-start"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <i className="bi bi-chevron-left"></i>
+                  </button>
+                </li>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <li
+                      key={pageNum}
+                      className={`page-item ${currentPage === pageNum ? "active" : ""}`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
+                        {pageNum}
+                      </button>
+                    </li>
+                  );
+                })}
+
+                <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                  <button
+                    className="page-link rounded-end"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <i className="bi bi-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="text-center py-5 bg-white rounded-3 shadow-sm">
+          <i className="bi bi-search fs-1 text-muted mb-3 d-block"></i>
+          <h5 style={{ color: COLORS.DARK }}>No users found</h5>
+          <p className="text-muted">Try adjusting your search or filters</p>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (

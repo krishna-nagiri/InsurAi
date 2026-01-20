@@ -40,7 +40,7 @@ export default function EmployeeLogin() {
     }
 
     try {
-      const res = await axios.post("http://localhost:8077/auth/login", {
+      const res = await axios.post("http://localhost:8090/auth/login", {
         email: email.trim().toLowerCase(),
         password,
       });

@@ -57,19 +57,19 @@ public class EmployeeJwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-@Override
-protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-    String path = request.getServletPath();
-
-    // Skip JWT filter for public endpoints
-    if (path.startsWith("/auth/forgot-password") || path.startsWith("/auth/reset-password")) {
-        return true;
-    }
-
-    // Existing paths
-    return !path.startsWith("/employee") 
-        && !path.startsWith("/claims") 
-        && !path.startsWith("/notifications/user");
-}
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+	    String path = request.getServletPath();
+	
+	    // Skip JWT filter for public endpoints
+	    if (path.startsWith("/auth/forgot-password") || path.startsWith("/auth/reset-password")) {
+	        return true;
+	    }
+	    
+	    // Existing paths
+	    return !path.startsWith("/employee") 
+	        && !path.startsWith("/claims") 
+	        && !path.startsWith("/notifications/user");
+	}
 
 }
