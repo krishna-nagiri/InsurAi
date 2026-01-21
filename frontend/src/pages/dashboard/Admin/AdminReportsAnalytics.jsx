@@ -49,11 +49,11 @@ export default function AdminReportsAnalytics() {
       setLoading(true);
       try {
         const [usersRes, claimsRes, policiesRes, hrsRes, agentsRes] = await Promise.all([
-          axios.get("http://localhost:8090/auth/employees", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8090/admin/claims", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8090/admin/policies", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8090/hr", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:8090/agent", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/auth/employees`, { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/claims`, { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/policies`, { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/hr`, { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/agent`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         setUsers(usersRes.data || []);

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +20,6 @@ import com.insurai.insurai_backend.model.Notification;
 import com.insurai.insurai_backend.repository.EmployeeRepository;
 import com.insurai.insurai_backend.service.InAppNotificationService;
 
-@CrossOrigin(origins = "http://localhost:3000") // Enable CORS for React frontend
 @RestController
 @RequestMapping("/notifications")
 public class NotificationController {

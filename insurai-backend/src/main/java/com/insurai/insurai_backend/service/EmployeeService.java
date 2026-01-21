@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,14 +19,19 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final JavaMailSender mailSender; // For sending emails
+    private final String jwtSecret;
+    private final String frontendBaseUrl;
 
-    // TODO: Replace with your actual secret key from application.properties or environment variable
-    private final String jwtSecret = "YOUR_SECRET_KEY_HERE";
+    public EmployeeService(EmployeeRepository employeeRepository,JavaMailSender mailSender,@Value("${jwt.secret}") String jwtSecret, @Value("${frontend.base.url}") String frontendBaseUrl) {
+    this.employeeRepository = employeeRepository;
+    this.mailSender = mailSender;
+    this.jwtSecret = jwtSecret;
+    this.frontendBaseUrl = frontendBaseUrl;
+    }
 
     /**
      * Registers a new employee.
@@ -112,7 +118,7 @@ public class EmployeeService {
         employeeRepository.save(emp);
 
         // Construct frontend reset password link (HashRouter-friendly)
-        String resetLink = "http://localhost:5173/#/employee/reset-password/" + token;
+        String resetLink = frontendBaseUrl + "/#/employee/reset-password/" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(emp.getEmail());

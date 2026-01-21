@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/hr")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class HrController {
 
     private final HrService hrService;
