@@ -3,6 +3,7 @@ package com.insurai.insurai_backend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -29,7 +30,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> {}) // Keep global CORS
+            .cors(Customizer.withDefaults()) // Keep global CORS
             .authorizeHttpRequests(auth -> auth
                 // Employee claim endpoints
                 .requestMatchers("/employee/claims/**").hasRole("EMPLOYEE")
@@ -105,7 +106,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173", "http://localhost:8080")
+                        .allowedOrigins("https://insurai-frontend.onrender.com","http://localhost:5173", "https://insurai-mac7.onrender.com","http://localhost:8080")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

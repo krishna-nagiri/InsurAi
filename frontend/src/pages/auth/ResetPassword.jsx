@@ -47,8 +47,7 @@ export default function ResetPassword() {
     setLoading(true);
     try {
       // Send new password to backend
-      const res = await axios.post(
-        `http://localhost:8090/auth/reset-password/${token}`,
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/reset-password/${token}`,
         { newPassword: password } // Backend expects this field
       );
 

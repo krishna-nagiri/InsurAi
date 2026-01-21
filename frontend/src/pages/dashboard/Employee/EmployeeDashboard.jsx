@@ -195,7 +195,7 @@ export default function EmployeeDashboard() {
   // ------------------ KEEPING ORIGINAL EMPLOYEE FETCH ------------------
   const fetchLoggedInEmployee = async (token) => {
     try {
-      const response = await axios.get("http://localhost:8090/auth/employees", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/auth/employees`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -223,7 +223,7 @@ export default function EmployeeDashboard() {
   const fetchEmployeeData = async (token) => {
     setLoading(prev => ({ ...prev, policies: true }));
     try {
-      const response = await axios.get("http://localhost:8090/employee/policies", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/employee/policies`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -258,7 +258,7 @@ export default function EmployeeDashboard() {
   const fetchEmployeeClaims = async (token) => {
     setLoading(prev => ({ ...prev, claims: true }));
     try {
-      const response = await axios.get("http://localhost:8090/employee/claims", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/employee/claims`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setClaims(response.data);
@@ -272,7 +272,7 @@ export default function EmployeeDashboard() {
   // ------------------ KEEPING ORIGINAL AGENTS FETCH ------------------
   const fetchAgents = async (token) => {
     try {
-      const response = await axios.get("http://localhost:8090/agent/availability/all", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/agent/availability/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgentsAvailability(response.data);
@@ -285,7 +285,7 @@ export default function EmployeeDashboard() {
   const fetchEmployeeQueries = async (token) => {
     setLoading(prev => ({ ...prev, queries: true }));
     try {
-      const response = await axios.get("http://localhost:8090/employee/queries", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/employee/queries`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQueries(response.data);
@@ -420,7 +420,7 @@ export default function EmployeeDashboard() {
 
     try {
       const response = await axios.post(
-        `http://localhost:8090/employee/queries?agentId=${selectedAgentId}&queryText=${encodeURIComponent(newQuery.queryText)}&policyName=${encodeURIComponent(policyName)}&claimType=${encodeURIComponent(newQuery.claimType)}`,
+        `${import.meta.env.VITE_API_BASE_URL}/employee/queries?agentId=${selectedAgentId}&queryText=${encodeURIComponent(newQuery.queryText)}&policyName=${encodeURIComponent(policyName)}&claimType=${encodeURIComponent(newQuery.claimType)}`,
         null,
         {
           headers: {

@@ -63,7 +63,7 @@ const Chatbot = ({ employeeData = { name: 'Employee', claims: [], policies: [] }
 
     try {
       const response = await axios.post(
-        'http://localhost:8090/employee/chatbot',
+        `${import.meta.env.VITE_API_BASE_URL}/employee/chatbot`,
         { message: userMessage.text },
         { headers: { Authorization: `Bearer ${token}` } }
       );

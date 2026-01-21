@@ -90,7 +90,7 @@ const handlePhoneChange = (e) => {
       }
 
       const response = await axios.post(
-        "http://localhost:8090/admin/hr/register",
+        `${import.meta.env.VITE_API_BASE_URL}/admin/hr/register`,
         newHr,
         {
           headers: { 
