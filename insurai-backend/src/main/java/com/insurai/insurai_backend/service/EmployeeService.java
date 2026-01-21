@@ -19,19 +19,16 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final JavaMailSender mailSender; // For sending emails
-    private final String jwtSecret;
-    private final String frontendBaseUrl;
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
-    public EmployeeService(EmployeeRepository employeeRepository,JavaMailSender mailSender,@Value("${jwt.secret}") String jwtSecret, @Value("${frontend.base.url}") String frontendBaseUrl) {
-    this.employeeRepository = employeeRepository;
-    this.mailSender = mailSender;
-    this.jwtSecret = jwtSecret;
-    this.frontendBaseUrl = frontendBaseUrl;
-    }
+    @Value("${frontend.base.url}")
+    private String frontendBaseUrl;
 
     /**
      * Registers a new employee.
