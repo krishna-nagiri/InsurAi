@@ -50,7 +50,7 @@ public class ClaimController {
    @Autowired
     private AuditLogService auditLogService;
 
-    private final String uploadDir = "C:/Users/Jeevan/Documents/InsurAi/insurai-backend/uploads/";
+    private final String uploadDir = "C:/Users/Krishna Nagiri/InsurAi/insurai-backend/uploads/";
 
 // -------------------- Submit Claim --------------------
 @PostMapping("")
@@ -61,8 +61,7 @@ public ResponseEntity<?> submitClaim(
         @RequestParam String description,
         @RequestParam Double amount,
         @RequestParam String date,
-        @RequestParam(required = false) List<MultipartFile> documents
-) {
+        @RequestParam(required = false) List<MultipartFile> documents ) {
     try {
         // Validate token
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
