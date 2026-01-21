@@ -102,40 +102,42 @@ export default function AdminPolicy() {
 
   // -------------------- Submit Policy --------------------
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  try {
-    const token = localStorage.getItem("token");
-    const formData = new FormData();
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
 
-    // Fix: Ensure the JSON part is explicitly typed
-    formData.append(
-      "policy",
-      new Blob([JSON.stringify(policyData)], { type: "application/json" })
-    );
+      // Fix: Ensure the JSON part is explicitly typed
+      formData.append(
+        "policy",
+        new Blob([JSON.stringify(policyData)], { type: "application/json" })
+      );
 
-    // Fix: Only append files if they exist
-    Object.keys(documents).forEach((key) => {
-      if (documents[key]) formData.append(key, documents[key]);
-    });
+      // Fix: Only append files if they exist
+      Object.keys(documents).forEach((key) => {
+        if (documents[key]) formData.append(key, documents[key]);
+      });
 
-    await api.post("/admin/policies", formData, {
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        // DO NOT add Content-Type here
-      },
-    });
+      await api.post("/admin/policies", formData, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          // DO NOT add Content-Type here
+        },
+      });
 
-    setMessage("✅ Policy saved successfully!");
-    resetForm();
-    fetchPolicies();
-  } catch (error) {
-    console.error("Submission error:", error.response?.data);
-    setMessage(`❌ ${error.response?.data || "Failed to submit policy"}`);
-  } finally {
-    setLoading(false);
-  }
-};
+      setMessage("✅ Policy saved successfully!");
+      resetForm();
+      fetchPolicies();      // Refresh the policy list
+
+
+    } catch (error) {
+      console.error("Submission error:", error.response?.data);
+      setMessage(`❌ ${error.response?.data || "Failed to submit policy"}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // -------------------- Reset Form --------------------
   const resetForm = () => {
