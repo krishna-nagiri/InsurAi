@@ -1,13 +1,10 @@
 package com.insurai.insurai_backend.service;
 
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-
 
 @Service
 public class SupabaseStorageService {
@@ -33,13 +30,14 @@ public class SupabaseStorageService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + serviceRoleKey);
+            headers.set("apikey", serviceRoleKey);
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
             HttpEntity<byte[]> request = new HttpEntity<>(file.getBytes(), headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
                     uploadUrl,
-                    HttpMethod.POST,
+                    HttpMethod.PUT,   // <-- IMPORTANT
                     request,
                     String.class
             );
