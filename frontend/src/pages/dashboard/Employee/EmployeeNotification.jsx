@@ -29,8 +29,8 @@ export default function EmployeeNotification({ userDbId, token }) {
       try {
         const url =
           filter === "unread"
-            ? `http://localhost:8090/notifications/user/${Number(userDbId)}/unread`
-            : `http://localhost:8090/notifications/user/${Number(userDbId)}`;
+            ? `${import.meta.env.VITE_API_BASE_URL}/notifications/user/${Number(userDbId)}/unread`
+            : `${import.meta.env.VITE_API_BASE_URL}/notifications/user/${Number(userDbId)}`;
 
         const response = await axios.get(url, {
           params: { role: "EMPLOYEE" },
@@ -61,7 +61,7 @@ export default function EmployeeNotification({ userDbId, token }) {
   const markAsRead = async (notificationId) => {
     try {
       const response = await axios.put(
-        `http://localhost:8090/notifications/${Number(notificationId)}/read`,
+        `${import.meta.env.VITE_API_BASE_URL}/notifications/${Number(notificationId)}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -106,7 +106,7 @@ export default function EmployeeNotification({ userDbId, token }) {
       await Promise.all(
         Array.from(selectedNotifications).map((id) =>
           axios.put(
-            `http://localhost:8090/notifications/${Number(id)}/read`,
+            `${import.meta.env.VITE_API_BASE_URL}/notifications/${Number(id)}/read`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           )

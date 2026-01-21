@@ -34,7 +34,6 @@ import jakarta.annotation.PostConstruct;
 
 @RestController
 @RequestMapping("/employee/chatbot")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class ChatbotController {
 
     @Value("${COHERE_API_KEY:}")
@@ -65,7 +64,7 @@ public class ChatbotController {
         if (cohereApiKey.isEmpty()) {
             System.out.println("⚠️ Cohere API key not set! Cohere responses will not work.");
         } else {
-            System.out.println("✅ Cohere API key loaded successfully.");
+            //System.out.println("✅ Cohere API key loaded successfully.");
         }
     }
 

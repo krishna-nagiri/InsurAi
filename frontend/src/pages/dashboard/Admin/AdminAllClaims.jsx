@@ -731,7 +731,7 @@ const AdminAllClaims = ({ claims = [] }) => {
                                 <li key={idx}>
                                   <a
                                     className="dropdown-item"
-                                    href={`http://localhost:8090${doc}`}
+                                    href={`${import.meta.env.VITE_API_BASE_URL}${doc}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
@@ -876,7 +876,7 @@ const AdminAllClaims = ({ claims = [] }) => {
                       {viewClaim.documents.map((doc, idx) => (
                         <div key={idx} className="col-md-6 mb-2">
                           <a
-                            href={`http://localhost:8090${doc}`}
+                            href={`${import.meta.env.VITE_API_BASE_URL}${doc}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="btn btn-outline-primary w-100 text-start"

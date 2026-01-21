@@ -59,7 +59,7 @@ const fetchUsers = useCallback(async () => {
       if (!token) return;
 
       // Fetch agents
-      const agentsRes = await axios.get("http://localhost:8090/agent", {
+      const agentsRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/agent`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const agentsData = Array.isArray(agentsRes.data) ? agentsRes.data : [];
@@ -72,7 +72,7 @@ const fetchUsers = useCallback(async () => {
       }));
 
       // Fetch employees
-      const employeesRes = await axios.get("http://localhost:8090/auth/employees", {
+      const employeesRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/auth/employees`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const employeesData = Array.isArray(employeesRes.data) ? employeesRes.data : [];
@@ -85,7 +85,7 @@ const fetchUsers = useCallback(async () => {
       }));
 
       // Fetch HRs
-      const hrsRes = await axios.get("http://localhost:8090/hr", {
+      const hrsRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/hr`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const hrsData = Array.isArray(hrsRes.data) ? hrsRes.data : [];
@@ -125,7 +125,7 @@ const fetchUsers = useCallback(async () => {
      // console.log("[STATUS CHANGE REQUEST]", requestBody);
 
       const response = await axios.put(
-        "http://localhost:8090/admin/users/status",
+        `${import.meta.env.VITE_API_BASE_URL}/admin/users/status`,
         requestBody,
         {
           headers: {
@@ -181,7 +181,7 @@ const handleEditUser = (user) => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8090/admin/users/${userId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert("User deleted successfully");
@@ -195,7 +195,7 @@ const handleEditUser = (user) => {
   const handleRegisterHR = async (hrData) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:8090/admin/hr/register", hrData, {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/admin/hr/register`, hrData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNewHR({ name: "", email: "", password: "" });
@@ -211,7 +211,7 @@ const handleEditUser = (user) => {
   const handleRegisterAgent = async (agentData) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:8090/admin/agent/register", agentData, {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/admin/agent/register`, agentData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setNewAgent({ name: "", email: "", password: "" });
@@ -230,7 +230,7 @@ const handleEditUser = (user) => {
       if (!token) return;
 
       // Fetch claims
-      const claimsRes = await fetch("http://localhost:8090/admin/claims", {
+      const claimsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/claims`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!claimsRes.ok) {
@@ -240,18 +240,18 @@ const handleEditUser = (user) => {
       const claimsData = await claimsRes.json();
 
       // Fetch employees
-      const empRes = await fetch("http://localhost:8090/auth/employees", {
+      const empRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/employees`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const employees = await empRes.json();
       // Fetch HRs
-      const hrRes = await fetch("http://localhost:8090/hr", {
+      const hrRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/hr`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const hrs = await hrRes.json();
 
       // Fetch policies
-      const policyRes = await fetch("http://localhost:8090/admin/policies", {
+      const policyRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/policies`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const policiesData = await policyRes.json();

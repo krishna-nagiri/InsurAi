@@ -57,7 +57,7 @@ export default function AgentRegister({ onBack }) {
       }
 
       const response = await axios.post(
-        "http://localhost:8090/admin/agent/register",
+        `${import.meta.env.VITE_API_BASE_URL}/admin/agent/register`,
         newAgent,
         {
           headers: {

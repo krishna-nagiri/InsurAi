@@ -61,7 +61,7 @@ export default function AdminFraudClaims() {
         const token = localStorage.getItem("token");
         if (!token) return console.error("❌ No admin token found!");
 
-        const response = await axios.get("http://localhost:8090/admin/claims/fraud", {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/admin/claims/fraud`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setFraudClaims(response.data);
@@ -427,7 +427,7 @@ export default function AdminFraudClaims() {
                       {viewingClaim.documents.map((doc, i) => (
                         <li key={i}>
                           <a 
-                            href={`http://localhost:8080${doc}`} 
+                            href={`${import.meta.env.VITE_API_BASE_URL}${doc}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             style={{ color: COLORS.PRIMARY }}

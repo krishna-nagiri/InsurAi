@@ -24,7 +24,7 @@ export default function HrLogin() {
     }
 
     try {
-      const res = await fetch("http://localhost:8090/hr/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/hr/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

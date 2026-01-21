@@ -28,7 +28,6 @@ import com.insurai.insurai_backend.service.EmployeeQueryService;
 
 @RestController
 @RequestMapping("/employee")
-@CrossOrigin(origins = "http://localhost:5173")
 public class EmployeeQueryController {
 
     @Autowired

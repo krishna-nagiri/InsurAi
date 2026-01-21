@@ -438,7 +438,7 @@ export default function HRClaims({
                           <li key={idx}>
                             <a
                               className="dropdown-item"
-                              href={`http://localhost:8090${doc}`}
+                              href={`${import.meta.env.VITE_API_BASE_URL}${doc}`}
                               target="_blank"
                             >
                               <i className="bi bi-download me-2"></i>{" "}
@@ -618,7 +618,7 @@ export default function HRClaims({
                   {viewingClaim.documents?.length > 0 ? (
                     <div className="list-group">
                       {viewingClaim.documents.map((doc, idx) => (
-                        <a key={idx} href={`http://localhost:8090${doc}`} target="_blank" 
+                        <a key={idx} href={`${import.meta.env.VITE_API_BASE_URL}${doc}`} target="_blank" 
                            className="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                           <span>
                             <i className="bi bi-file-earmark me-2"></i>

@@ -14,7 +14,6 @@ import com.insurai.insurai_backend.service.PolicyService;
 
 @RestController
 @RequestMapping("/employee")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class EmployeeController {
 
     private final PolicyService policyService;
