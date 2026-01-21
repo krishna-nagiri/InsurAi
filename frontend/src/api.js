@@ -2,9 +2,6 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL, // backend base URL (no /api)
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Automatically attach token to every request
