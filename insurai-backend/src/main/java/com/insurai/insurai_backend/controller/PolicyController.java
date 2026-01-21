@@ -42,7 +42,7 @@ public class PolicyController {
     }
 
     // -------------------- Create or Update a policy with documents --------------------
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<?> savePolicyWithDocuments(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestPart("policy") String policyJson, // receive JSON as string
