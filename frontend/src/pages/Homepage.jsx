@@ -484,7 +484,6 @@ const Homepage = () => {
         }}>
           {[
             { label: 'Employee', path: '/employee/register', icon: '👤' },
-            { label: 'Admin', path: '/admin/login', icon: '🛡️' },
             { label: 'Agent', path: '/agent/login', icon: '💼' },
             { label: 'HR Portal', path: '/hr/login', icon: '🏢' }
           ].map((role) => (
