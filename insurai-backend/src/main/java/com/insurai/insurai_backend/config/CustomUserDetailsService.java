@@ -13,6 +13,8 @@ import com.insurai.insurai_backend.model.Admin;
 import com.insurai.insurai_backend.model.Employee;
 import com.insurai.insurai_backend.repository.AdminRepository;
 import com.insurai.insurai_backend.repository.EmployeeRepository;
+//Murali: Added Agent Login.
+import com.insurari.insurai_backend.repository.AgentRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final AdminRepository adminRepository;
     private final EmployeeRepository employeeRepository;
+    private final AgentRepository agentRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -48,7 +51,16 @@ public class CustomUserDetailsService implements UserDetailsService {
                     .build();
         }
 
-        // Optional: Add Agent/HR logic here if needed
+        Agent ag = agentRepository.findByEmail(email).orElse(null);
+        if(ag != null){
+            String roleName = ag.getRole().name();
+            String roleWithPrefix = roleName.startsWith("ROLE_AG") ? roleName : "ROLE_"+roleName;
+
+            return User.builder().username(ag.getEmail())
+                    .password(ag.getPassword()).
+                    .authorities(Collections.singletonList(new SimpleGrantedAuthority(roleWithPrefix)))
+                    .build();
+        }
 
         throw new UsernameNotFoundException("User not found with email: " + email);
     }
